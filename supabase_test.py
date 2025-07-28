@@ -12,6 +12,18 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 client = OpenAI(api_key=OPENAI_API_KEY)
 
+def get_child_info(child_id):
+    """Fetch name and age from the children table using child_id"""
+    try:
+        response = supabase.table("children").select("name, age").eq("child_id", child_id).single().execute()
+        if response.data:
+            return response.data
+        else:
+            return None
+    except Exception as e:
+        print(f"Error fetching child info: {e}")
+        return None
+
 def get_general_profile(child_id):
     """Fetch general_profile from the conversation_memory table using child_id"""
     try:
@@ -24,12 +36,12 @@ def get_general_profile(child_id):
         print(f"Error fetching profile: {e}")
         return None
 
-def generate_welcome_messages(general_profile, count=10):
+def generate_welcome_messages(name, age, general_profile, count=10):
     """Generate N personalized welcome messages using OpenAI"""
     prompt = (
-        f"Create {count} short, friendly, and fun welcome messages for a child. "
+        f"Create {count} short, friendly, and fun welcome messages for a child named {name}, who is {age} years old. "
         f"Base them on this general profile: {general_profile}. "
-        f"Each message should be slightly different, 1-2 sentences long, and positive."
+        f"Each message should directly use the child's name and be positive, 1-2 sentences long, and a little varied."
     )
 
     try:
@@ -45,12 +57,19 @@ def generate_welcome_messages(general_profile, count=10):
 
 if __name__ == "__main__":
     child_id = input("Enter child ID: ")
-    profile = get_general_profile(child_id)
 
-    if profile is None:
+    child_info = get_child_info(child_id)
+    general_profile = get_general_profile(child_id)
+
+    if child_info is None:
+        print("No child info found.")
+    elif general_profile is None:
         print("No general_profile found for this child.")
     else:
-        messages = generate_welcome_messages(profile)
+        name = child_info["name"]
+        age = child_info["age"]
+        messages = generate_welcome_messages(name, age, general_profile)
+
         print("\n--- Welcome Messages ---")
         for i, msg in enumerate(messages, start=1):
             print(f"{i}. {msg.strip()}")
