@@ -70,6 +70,9 @@ if __name__ == "__main__":
         age = child_info["age"]
         messages = generate_welcome_messages(name, age, general_profile)
 
-        print("\n--- Welcome Messages ---")
-        for i, msg in enumerate(messages, start=1):
-            print(f"{i}. {msg.strip()}")
+        cleaned_messages = [msg.strip("-• ").strip() for msg in messages if msg.strip()]
+        
+        print("\nGenerated Welcome Messages List:")
+        print(cleaned_messages)
+
+            create a function, run it in python, whatever i return in the lambda_handler function is what he gets, status code: 200
